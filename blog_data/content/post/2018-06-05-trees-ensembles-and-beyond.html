@@ -1,0 +1,232 @@
+---
+title: Trees, Ensembles and beyond, XGBoost and LGBM
+author: David Salazar
+date: '2018-06-10'
+slug: trees-ensembles-and-beyond
+output: 
+  blogdown::html_page:
+    toc: true
+categories:
+  - tutorial
+tags:
+  - machine learning
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#why">Why?</a><ul>
+<li><a href="#set-up">Set-up</a></li>
+</ul></li>
+<li><a href="#trees">Trees</a><ul>
+<li><a href="#fitting-them">Fitting them</a></li>
+<li><a href="#interpretation">Interpretation</a></li>
+</ul></li>
+<li><a href="#ensembles">Ensembles</a><ul>
+<li><a href="#bagging">Bagging</a><ul>
+<li><a href="#bootstraping">Bootstraping</a></li>
+<li><a href="#random-forests">Random Forests</a></li>
+<li><a href="#conclusions-for-bagging">Conclusions for Bagging</a></li>
+</ul></li>
+<li><a href="#boosting">Boosting</a><ul>
+<li><a href="#directional-derivative">Directional Derivative</a></li>
+<li><a href="#gradient-boosting-back-to-our-problem">Gradient Boosting: Back to our problem</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="why" class="section level1">
+<h1>Why?</h1>
+<p><code>lightgbm</code> and <code>xgboost</code> appear in every single competition at Kaggle. Thus, these boosting techniques must be able to learn something that cannot be easily learned from intelligent bagging techniques like Random Forests. This is my attempt to understand <em>why</em> and <em>how</em> they can do that.</p>
+<div id="set-up" class="section level2">
+<h2>Set-up</h2>
+<p>This will be kind of mathy, but I will try to keep the notation as clear as possible so it can be understood without much hassle. The traditional problem in machine learning, for a given algorithm, is as follows: learn a function, <span class="math inline">\(f(x; \theta)\)</span> such that <span class="math inline">\(\theta\)</span> minimizes the following:</p>
+<p><span class="math display">\[ E_{y,x} (L(y, f(x; \theta)) ) \]</span>
+Unpacked, it can be explained thus: given a loss function, <span class="math inline">\(L\)</span>, we want to find the <span class="math inline">\(\theta\)</span> such that the loss between the observations, <span class="math inline">\(y\)</span>, and our predictions, <span class="math inline">\(f(x;\theta)\)</span> is minimized across the values we expect to see of the observations <span class="math inline">\(\{x, y\}\)</span>. Note that this last condition precludes <em>train-set-overfitting</em>: we want something to generalizes even to not-yet seen observations.</p>
+</div>
+</div>
+<div id="trees" class="section level1">
+<h1>Trees</h1>
+<p>From the freely available <a href="https://web.stanford.edu/~hastie/Papers/ESLII.pdf">Elements of Statistical Learning</a> p.305:</p>
+<blockquote>
+<p>Tree-based methods partition the feature space into a set of rectangles, and then fit a simple model (like a constant) in each one. They are conceptually simple yet powerful.</p>
+</blockquote>
+<p>Thus, a prediction with a tree is a matter of finding on <strong>which partition</strong> our new observation sits and predict <strong>the constant assigned</strong> to that region. For regression problems, the constant is the average of the observations in the regions; for classification problem, the constant is the modal class within the region.</p>
+<div id="fitting-them" class="section level2">
+<h2>Fitting them</h2>
+<p>They sound, and are quite simple, but the big problem is <strong>how to find the partitions</strong> in the first place. Mathematically, the problem can be defined thus:</p>
+<p>For <span class="math inline">\(J\)</span> partitions that we decide to perform, find where in the space to do the partition, <span class="math inline">\(R_j\)</span>, and what constant to assign to that partition, <span class="math inline">\(c_j\)</span>. We must find, for each partition <span class="math inline">\(j\)</span> the <span class="math inline">\(R_j\)</span>, <span class="math inline">\(c_j\)</span> pair that minimize the following:</p>
+<p><span class="math display">\[ \sum_{j}^J \sum_{x_i \in R_j} E_y (L(y, c_j) ) \]</span></p>
+<p>However, this a prohibitely expensive combinatorial optimization problem. To avoid this, we proceed with a <strong>greedy algorithm</strong>:</p>
+<p>For any given node do the following:</p>
+<ol style="list-style-type: decimal">
+<li>Loop over each of the features.</li>
+<li>For each feature, sort the observations and find every possible split using this feature. Compute the <strong>information gain</strong> of doing each of these splits. Keep only the one that gave the best information gain.</li>
+</ol>
+<blockquote>
+<p>Information gain is defined as the difference between the loss in the node and the average loss across the nodes created as we do the proposed partition</p>
+</blockquote>
+<ol start="3" style="list-style-type: decimal">
+<li>Compare the best information again across features. Finally, use the feature that had the best one.</li>
+<li>Go over the next node and repeat.</li>
+</ol>
+<p>Thus, note that the algorithm will keep doing this partitions as long as there are no possible partitions in any of the nodes.</p>
+</div>
+<div id="interpretation" class="section level2">
+<h2>Interpretation</h2>
+<p>Besides the traditional tree visualization, notice that we can rank the importance of each feature according to their predictive power:</p>
+<blockquote>
+<p>For each node, annotate which feature was used and the resulting information gain from that partition. Do that across all the nodes. Sum for all the features that were used more than once. The features that have more of these values, are the ones that were more important for our tree.</p>
+</blockquote>
+<p><strong>This way of computing feature importances will be generalized to ensemble trees. As we will do the same procedure for each tree in the ensemble, and then average across trees. However, this procedure is not without its <a href="http://parrt.cs.usfca.edu/doc/rf-importance/index.html">perils</a>.</strong></p>
+</div>
+</div>
+<div id="ensembles" class="section level1">
+<h1>Ensembles</h1>
+<p>Trees are simple and powerful. Yet, they are limited: they are extremely susceptible to noise: i.e., they have a high variance. From <a href="https://web.stanford.edu/~hastie/Papers/ESLII.pdf">Elements of Statistical Learning</a>, p.312:</p>
+<blockquote>
+<p>The major reason for this instability is the hierarchical nature of the process: the effect of an error in the top split is propagated down to all of the splits below it.</p>
+</blockquote>
+<p>However, <strong>they can be much improved if they are combined together</strong>.</p>
+<div id="bagging" class="section level2">
+<h2>Bagging</h2>
+<p>Bagging consists on the idea of combining <strong>weak learners</strong>, that is, models that do not perform very well, and that the end result is greater than the sum of its parts. Why can we do this? When we have multiple and <strong>uncorrelated weak learner</strong>, they will make mistakes in their individual predictions, yes, but they will commit <strong>different types of mistakes</strong>. If they are <strong>roughly right</strong>, some models will overshoot and some will undershoot: the end result of combining them will be that we will make correct predictions as the <strong>errors will cancel each other</strong>.</p>
+<p>In the statistical learning lingua, what we are trying to achieve is, by virtue of combining <strong>uncorrelated weak learners</strong>, a better position in the <strong>bias-variance trade-off</strong>. To do so, we need to enforce the following conditions:</p>
+<ol style="list-style-type: decimal">
+<li>The individual <strong>weak learners</strong> must have <strong>low correlation between each other</strong> and have <strong>low bias</strong>(i.e., they must able to learn complex data structures).</li>
+<li>The combination of the models <strong>cannot increase the bias</strong> that the individual learner has.</li>
+<li>The combination of the models must <strong>reduce the overall model variance</strong> with respect to the variance of the individual weak learners.</li>
+</ol>
+<p>If the three conditions hold, bagging will lead us into a better position in the <strong>bias-variance trade-off</strong>: we will have the same bias (which is already low, given how powerful indiviual trees can be) but we will have lower variance. Thus, we have a better model.</p>
+<p>To make sure that three conditions mentioned hold, there are two smart methods for bagging: <strong>simple bagging and random forests</strong>. In both, we combine low bias trees and try to decorrelate them by using some clever tricks such that the trees that we construct end up being <strong>uncorrelated weak learners</strong>. Note that the key part here is “<strong>uncorrelated weak learners</strong>”. <strong>If they are weak learners, but are highly correlated, combining them won’t fix any of the problems the individual learners have</strong>.</p>
+<p>Mathematically (without worrying about its derivation, just the interpretation), this can be seen thus:</p>
+<ul>
+<li>The variance of an average of <span class="math inline">\(B\)</span> <span class="math inline">\(i.i.d.\)</span> random variables (<span class="math inline">\(X\)</span> with variance <span class="math inline">\(\sigma^2\)</span>) is:</li>
+</ul>
+<p><span class="math display">\[ \frac{1}{B}\sigma^2\ \]</span></p>
+<ul>
+<li>However, if they are identically distributed but not independent, and with positive pairwise correlation <span class="math inline">\(\rho\)</span>, the variance of their sum average:</li>
+</ul>
+<p><span class="math display">\[ \rho \sigma^2 + \frac{1 - \rho}{B} \sigma^2  \]</span></p>
+<p>Thus, as <span class="math inline">\(B\)</span> increases and <span class="math inline">\(\rho\)</span> decreases, our individual weak learners will become more like the <strong>uncorrelated weak learners</strong> we need for bagging to be effective. Then, the conditions for effective bagging are clear: <strong>we must be able to create a large number of weak learners them (large <span class="math inline">\(B\)</span>) and we must be able to create decorrelated versions of them</strong>. It just so happens that, with some ingenuity, trees are the perfect candidate!. Both <strong>Bootstraping and Random Forests</strong> are ways of achieving this succesful ensemble with trees.</p>
+<p>Once we have multiple <strong>uncorrelated weak learners</strong>, combining them is a simple task. If the problem is a regression one, we average our predictions across trees. If it is a classification one, we use majority voting.</p>
+<div id="bootstraping" class="section level3">
+<h3>Bootstraping</h3>
+<p>So we know how to construct high variance low bias trees:</p>
+<blockquote>
+<p>Construct them such that they have a lot of depth and thus are able to capture complex structure in the data. This can be accomplished by setting a low value for <code>min_samples_leaf</code> in the <code>scikit-learn</code> implementation. Although each of the trees will tend to overfit as they have more depth, <strong>bagging will precisely solve this problem</strong> by reducing the overall model variance.</p>
+</blockquote>
+<p><strong>But how to construct them such that they are uncorrelated between them?</strong></p>
+<p>One way of making sure that the trees are uncorrelated is to make them use slightly <strong>different samples</strong> in their respective training. That is, for each tree that we construct, we are going to pass them over a bootstrap-resampled version (i.e., sampled <span class="math inline">\(rows\)</span> with <span class="math inline">\(n = |trainingdata|\)</span> times with replacement) of the training data. Thus, as each tree is going to work with different data, they are going to learn
+<strong>different partitions</strong> and thus predict different values and behave like <strong>uncorrelated weak learners</strong> we need.</p>
+<p>To understand this, let’s make the following experiment. imagine one tree and one bootstrap-resampled version of the training data. For a given row, <strong>what is the probability that the tree will see this row in its data?</strong></p>
+<blockquote>
+<p>The probability of not choosing that row in the first iteration of the bootstrap is: <span class="math inline">\(\frac{n-1}{n}\)</span>. The probability of not choosing that row in any of the other iterations is: <span class="math inline">\((\frac{n-1}{n})^n\)</span> (remember that we are sampling n times from the n rows). Thus, the probability of the tree seeing that row in its data, is: <span class="math inline">\(1- (\frac{n-1}{n})^n\)</span></p>
+</blockquote>
+<p>Using computer power, we can see that this expression converges to 63%:</p>
+<p><img src="/post/2018-06-05-trees-ensembles-and-beyond_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>Thus, <strong>if we perform a bootstrap with equal number of iterations as there is # of observations in the training data, the tree will see at least that row in its data with 63% of probability</strong>. Not bad right? <strong>That means that there’s a 37% chance that it will not see it, will not learn from it, and thus will arrive at a different partition</strong> than the trees that do see that observation. Notice that we are moving on the <strong>bias-variance tradeoff</strong>: if the tree does not see it, it will be biased; however, when averaging with others, this will be corrected <strong>and</strong> these differences will reduce the overall model variance.</p>
+<p>However, we can be even more extreme with this procedure. <strong>We can perform a bootstrap by sampling even less times than there are training observations</strong>. If we do so, the probability that, for a given row, a given tree will not see it in its data is:</p>
+<p><span class="math display">\[1- (\frac{n-1}{n})^k \]</span></p>
+<p><strong>Remember that now <span class="math inline">\(k &lt; n\)</span></strong>. Evaluating this operation such that <span class="math inline">\(k \in \{n/2, n/3, n/4\}\)</span>:</p>
+<p><img src="/post/2018-06-05-trees-ensembles-and-beyond_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Notice how the probability of <strong>seeing a given row in a given tree decreases as we reduce the number of iterations in the bootstrap</strong>. This means that more and more trees won’t see some observations, won’t learn from them and thus will learn different partitions from the trees that do see those observations. Thus, <strong>by reducing the number of iterations in the bootstrap we can reduce the correlation between the trees</strong>. However, notice that this will accomplish an even greater shift in the bias-variance tradeoff: the reduction in the variance will be greater, yes, but so will be the increase in the bias of each individual tree. Also, this technique has the benefit of reducing training time, as each tree takes less time in training due to lower number of observations (and consequently, # of splits) it considers.</p>
+<p><strong>Note that the only way I know of setting the number of bootstrap iterations lower than the number of observations is by using the <code>fast.ai</code> library and the following two functions:</strong></p>
+<pre class="python"><code>from sklearn.ensemble import forest
+def set_rf_samples(n):
+    &quot;&quot;&quot; Changes Scikit learn&#39;s random forests to give each tree a random sample of
+    n random rows. from fast.ai: https://github.com/fastai/fastai/blob/master/fastai/structured.py
+    &quot;&quot;&quot;
+    forest._generate_sample_indices = (lambda rs, n_samples:
+        forest.check_random_state(rs).randint(0, n_samples, n))
+        
+def reset_rf_samples():
+    &quot;&quot;&quot; Undoes the changes produced by set_rf_samples.
+    &quot;&quot;&quot;
+    forest._generate_sample_indices = (lambda rs, n_samples:
+        forest.check_random_state(rs).randint(0, n_samples, n_samples))</code></pre>
+</div>
+<div id="random-forests" class="section level3">
+<h3>Random Forests</h3>
+<p>Even though passing over different bootstraped-versions to each tree in a forest can effectively “decorrelate” the trees, we can improve on it. Let’s think of a situation where <strong>this procedure fails</strong>: no matter what rows each tree sees, the partitions are all the same. Why? Close to all of the <strong>observations share a predominant</strong> feature: one that always will yield the best information gain if split on it, no matter what subset of the data the tree is seeing. Thus, the trees won’t give different predictions and bagging won’t help much. What can we do?</p>
+<p>Enter <strong>random selection</strong>: every time any of the trees will evaluate which feature to use, we <strong>will tell it to only consider a subset of the features</strong>. Which subset? Well, <strong>every time any of the trees reach any of the nodes, we will draw a random sample of the subsets</strong> and the tree will only be allowed to look within that subset for the best split.
+Now consider the former problem of the predominant feature. What will happen? Each time a node evaluates on which features to split, <strong>the predominant feature may or may not be within the subsets of features the tree is allowed to use in that node</strong>. If it is not, then the tree won’t use that feature: even if could have used that feature and improve the information gain from that split. <strong>Why do we choose to sacrifice individual tree performance?</strong> This loss in the information gain at a particular tree is <strong>countered by the overall model benefits of having trees that uncorrelated between them and thus reaping the benefits of bagging</strong>.</p>
+<p>From the <a href="https://web.stanford.edu/~hastie/Papers/ESLII.pdf">Elements of Statistical Learning</a> p.598, we can see that, effectively, tree correlation decreases as we are more stringent with the number of features that each node can use:</p>
+<p><img src="/post/2018-06-05-trees-ensembles-and-beyond_files/esl.png" /></p>
+</div>
+<div id="conclusions-for-bagging" class="section level3">
+<h3>Conclusions for Bagging</h3>
+<p>Ensembling trees into a bigger model will be a good idea when the trees are enough to understand the complexity of the structure in the data and when we can construct the trees such that the correlation between them is low enough. One way of tackling the first issue is constructing trees with enough depth. <strong>One way of tackling the second issue is by using bagging and random forests.</strong></p>
+<p>Thus, there are <strong>four hyperparameters that you have to set to define in which position of the bias-variance trade-off</strong> you want to be when using the tree ensembles discussed above:</p>
+<ul>
+<li><span class="math inline">\(B\)</span>: The number of trees you want to use to average predictions. In <code>scikit-learn</code>: <code>n_estimators</code>.</li>
+</ul>
+<blockquote>
+<p>This type of ensemble is pretty difficult to get to overfit with this hyperparameter. You will see that as you change this number, predictions won’t change that much.</p>
+</blockquote>
+<ul>
+<li><p><span class="math inline">\(k\)</span>: How many samples of the training data you want to pass to each individual tree. Use fast.ai’s function <code>set_rf_samples()</code>.</p></li>
+<li><p>The size of the random subset of features that each node can use to determine which is the best split. The less, the more “decorrelated” the trees will be. In <code>scikit-learn</code>: <code>max_features</code>.</p></li>
+<li><p>The individual tree depth that each tree can go to. This is easily determined by <code>min_samples_leaf</code> in <code>scikit-learn</code>, which determines the minimum number observations required to be at a leaf node.</p></li>
+</ul>
+<p>In code this will look like:</p>
+<pre class="python"><code>from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+set_rf_samples(k)
+model = RandomForestRegressor(n_estimators=B, min_samples_leaf=3, 
+                      max_features=0.5, n_jobs=-1)</code></pre>
+</div>
+</div>
+<div id="boosting" class="section level2">
+<h2>Boosting</h2>
+<p>Boosting is also an ensemble of weak learners technique, but <strong>a fundamentally different one than Bagging</strong>. The way it works is by <strong>sequentially fitting weak learners models to sequentially modified versions of the data</strong>. The key is in <em>sequentially modified versions of the data</em>. With boosting, we want each <strong>model to focus on the structure within the data that the former model got didn’t learn effectively</strong>. Thus, each learner will be directed to focus on different structures within the data.</p>
+<p>Putting this more formally. <strong>Sequentially means that we will repeat one process for a given number of iterations. Those are the number of boosting iterations</strong>. For the first iteration we will treat it as any other supervised learning task. That is, we will, fit a tree such that we minimize the following:</p>
+<p><span class="math display">\[ E_{y,x} (L(y, T_1(\{R_{j,1}\}, \{c_{j,1}\},x)) ) \]</span></p>
+<p>Were <span class="math inline">\(\{R_{j,1}\}\)</span>, <span class="math inline">\(\{c_{j,1}\}\)</span> are the sets of regions and predictions we create by fitting this first tree.</p>
+<p>However, for any further iteration, let’s say the second iteration, we will be:</p>
+<ol style="list-style-type: decimal">
+<li>trying to find another function,<span class="math inline">\(T_{2}(\{R_{j,2} \}, \{c_{j,2} \},x)\)</span> such that we minimize our iteration’s loss function.</li>
+<li>We are treating the trees we fitted at the other iterations as set in stone.</li>
+</ol>
+<p>Thus, our optimization problem for the second boosting iteration is:</p>
+<p><span class="math display">\[E_{y,x}(L(y, T_1(\{R_{j,1} \}, \{c_{j,1} \},x) + T_{2}(\{R_{j,2} \}, \{c_{j,2} \},x)))\]</span></p>
+<p>Notice the big change, <strong>within the loss now there are terms set in stone at both sides of the comma:</strong> <span class="math inline">\(y\)</span> and <span class="math inline">\(T_1(\{R_{j,1}\}, \{c_{j,1}\},x)\)</span>. Notice <strong>how the complexity of finding the best splits for</strong> <span class="math inline">\(T_{2}(\{R_{j,2} \}, \{c_{j,2} \},x)\)</span> <strong>changed with respect to the first tree</strong>: for any given split we are considering, we must first find what predictions we gave before for the observations at either side of the split. With more boosting iterations and thus more trees, this problem grows even more complex.</p>
+<p>To solve this problem, we will take a detour into <strong>directional derivatives and steppest descent</strong>. Then, we will be able to solve the above problem with a very clever approximation.</p>
+<div id="directional-derivative" class="section level3">
+<h3>Directional Derivative</h3>
+<p>Let’s make an experiment for a second and forget the above. Let’s think of the problem of only predicting one row, <span class="math inline">\(row\)</span>. Let’s forget <span class="math inline">\(T_{2}( \{R_{j,2}\}, \{c_{j,2}\},x)\)</span>, let’s treat <span class="math inline">\(y\)</span> as a parameter and let’s treat <span class="math inline">\(T_1(\{R_{j,1}\}, \{c_{j,1}\},x)\)</span> as a variable <span class="math inline">\(z\)</span>. And finally, let’s forget the expectation. Then, we end up with a function in one variable:</p>
+<p><span class="math display">\[ L(z ; y_{row}) \]</span></p>
+<p>Imagine we have to minimize this function by taking little steps around a starting point. That is, for a starting point, <span class="math inline">\(z_0\)</span>, which <span class="math inline">\(addition\)</span> is the one that minimizes: <span class="math display">\[  L(z_0 + addition; y_{row}) \]</span></p>
+<p>From a bit of calculus (do not worry about the derivation, just the interpretation), we know that:</p>
+<p><span class="math display">\[ L(z + addition; y_{row}) \approx L(z_0; y_{row}) + \nabla  L(z_0; y_{row}) \cdot addition \]</span>
+<span class="math inline">\(\nabla L(y_{row}, z)\)</span> is the gradient of the function. Remember: the gradient is just a vector, each component tells you, for a given axis, the rate of change of the function in the direction of that axis. By taking the dot product with <span class="math inline">\(addition\)</span>, which can also be seen as a one dimensional vector, we have the rate of change of the function in the direction of that vector. <strong>This is called the directional derivative</strong> of the function in the direction of the vector <span class="math inline">\(addition\)</span>.</p>
+<p>Thus, <strong>our problem now is to find direction (the vector) on which decreases our function the most</strong>. Because, <span class="math inline">\(L(z_0; y_{row})\)</span> is a constant, our problem is minimizing the dot product <span class="math inline">\(\nabla L(z_0; y_{row})\)</span>. For our problem to make sense (i.e., we cannot say our direction is minus infinte across any axis), we will restrict ourselves to close by vectors. Were we to solve this problem sequentially, that is, <strong>find the <span class="math inline">\(addition^*\)</span> that minimizes our function around some point, move to that point, and then solve the problem again</strong>, we would be performing <strong>the steepest descent method</strong> and end up minimizing our function $ L(z; y_{row}) $</p>
+</div>
+<div id="gradient-boosting-back-to-our-problem" class="section level3">
+<h3>Gradient Boosting: Back to our problem</h3>
+<p>Notice that the problem of boosting is equivalent of the problem we just solved:</p>
+<ol style="list-style-type: decimal">
+<li>Start around a given point in a function you want to minimize. <strong>That would the tree we fit in the first boosting iteration</strong>.</li>
+<li>Add a term to our prediction <strong>such that we move in the direction that minimizes our loss function</strong>. We know in which direction the function minimizes if we use <strong>directional derivatives and Steppest descent</strong>. Thus, we must make that the term we are adding, <strong>the predictions of our second tree</strong>, as close as possible as to this value. <strong>The best way to do so? Direct this second tree to predict these values!</strong>.</li>
+<li>Repeat (2) for further boosting iterations. Because we are essentially performing <strong>Steppest Descent</strong>, we will end up minimizing our loss function.</li>
+</ol>
+<p>Using math notation:</p>
+<ol style="list-style-type: decimal">
+<li>Fit a tree in the first boosted iteration <span class="math inline">\(T_1(\{R_{j,1} \}, \{c_{j,1} \},x)\)</span>.</li>
+<li>Evaluate loss function around the point that is our prediction with the first tree. <strong>We want to move that point in the direction</strong> (which is the same as adding <span class="math inline">\(addition\)</span>) such that we <strong>minimize our loss function</strong>. We already know which vector solves this problem!! <strong>The vector</strong><span class="math inline">\(addition\)</span> <strong>that minimizes</strong><span class="math inline">\(\nabla L(y_0, T_1(\{R_{j,1} \}, \{c_{j,1} \},x_0)) \cdot addition\)</span>. <strong>Now that we know the solution to our problem the question is: can we arrive at this</strong> <span class="math inline">\(addition^*\)</span> <strong>by using a random forest?</strong>.</li>
+</ol>
+<blockquote>
+<p>Well the only way we can know is by trying. <strong>Let’s repeat the process for each row such that we have an <span class="math inline">\(addition^*\)</span> to predict for each row and then put them all in a vector</strong>. Then, let’s fit our second boosted iteration tree, <span class="math inline">\(T_{2}(\{R_{j,2} \}, \{c_{j,2} \},x)\)</span>, but <strong>this time trying, instead of trying to predict <span class="math inline">\(y\)</span> again, we want to predict this new vector of</strong> <span class="math inline">\(addition^*\)</span>’s. Once we have predicted these, add those to our first tree predictions. The result of this addition is now our current prediction.</p>
+</blockquote>
+<blockquote>
+<p>Note that each tree predicts a different quantity: <strong>a quantity that measures where the biggest improvement, given the past trees’ predictions, can be done</strong>. This is the “sequentially fitting weak learners models to sequentially modified versions of the data”.</p>
+</blockquote>
+<ol start="3" style="list-style-type: decimal">
+<li><strong>If we do a good job across boosting iterations repeating (2), we would be updating</strong> <span class="math inline">\(L(y_{row}, T_1(\{R_{j,1} \}, \{c_{j,1} \},x) + T_{2}(\{R_{j,2} \}, \{c_{j,2} \} + ...,x_0))\)</span> by a value close enough to <span class="math inline">\(addition^*\)</span> at each iteration. If we repeat the process across the boosting iterations, <strong>we will be essentially performing Stepping Descent and will be minimizing our loss function</strong>.</li>
+</ol>
+<p>Notice that it wasn’t a coincidence that we used the term <strong>addition</strong> when describing</p>
+<p>requirements: define a good transformation of the data such that it focues the next learner on the unseen parts of the data. fit a good model to each part of the data each model is directed to. combine them such that the models that best model each part of the data are given more weight than others.</p>
+<p>Meta parameter: number of boosts; size of the trees; shrinkage; v? ; subsampling?</p>
+</div>
+</div>
+</div>
