@@ -4,21 +4,25 @@ languageCode = "en-us"
 title = "Dilettanting Data Science"
 theme = "hugo-lithium"
 googleAnalytics = ""
-disqusShortname = ""
+disqusShortname = "https-david-salazar-github-io"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [permalinks]
     post = "/:year/:month/:day/:slug/"
+    
+[[menu.main]]
+    name = "Posts"
+    url = "https://david-salazar.github.io/"
 
 [[menu.main]]
     name = "About"
     url = "/about/"
 [[menu.main]]
     name = "GitHub"
-    url = "https://github.com/rstudio/blogdown"
+    url = "https://github.com/David-Salazar"
 [[menu.main]]
     name = "Twitter"
-    url = "https://twitter.com/rstudio"
+    url = ""
 
 [params]
     description = "A website built through Hugo and blogdown."
@@ -32,5 +36,10 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
 
-    
+[params.logo]
+    url = "turner.jpg"
+    width = 200
+    height = 200
+    alt = "Logo"
+
 
