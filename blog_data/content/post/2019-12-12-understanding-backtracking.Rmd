@@ -1,0 +1,67 @@
+---
+title: "Understanding Backtracking"
+author: "David Salazar"
+date: '2019-12-12'
+slug: understanding-backtracking
+tags: []
+categories: algorithms
+---
+
+# Recursion black magic
+
+While working through some HackerRank's problems, I came across the following exercise:
+
+> Find the number of ways that a given integer, $X$, can be expressed as the sum of the $N^{th}$ powers of unique, natural numbers. 
+
+However, I could not inmediately come up with a compelling way to programatically enumerate and examine all the possible sequences of numbers to find the required solution. Thus, it's good time as ever to refresh my knowledge about recursion and specically, backtracking.
+
+## Backtracking
+
+To solve the problem, one must generate and check every possible combination of integers that may generate the desired integer, $X$. 
+For example, for $X = 29, N = 2$.
+
+One must start with $1^2 = 1$. Then, check all the possible integers one can add. This includes adding $2^2, 3^2$, both at the same time and separately. Check whehter any of these possibilites computes the desired number. Each possible avenue of exploration, then, will only stop when either the the sum actually generates the desired $X$, or the sum is exceded. Once this part of the tree has been explored, we can 
+
+Thus, we have an old-fashion recursion algorithm as follows:
+
+> Populate an array starting from $1$, and add to the array the following integer elevated to the required value and checking whether the stopping conditions are met. Once all of the possibilites have been evaluated, start from a new root and let $2$ be the first value in the array. 
+
+```{r include=FALSE}
+library(reticulate)
+use_python("/home/davidsalazarv95/anaconda3/lib")
+```
+
+```{python}
+def count_expressions(x, n, vals):
+
+    # check the sum of the array
+    
+    s = sum(v**n for v in vals)
+
+    print('The current expression looks like:', ' + '.join('{}^{}'.format(v, n) for v in vals))
+    
+    # First stopping condition
+
+    if s == x:
+        print("We've found a solution!")
+        
+        # answer that gets recursively savced up
+        return 1
+    else:
+        answer = 0
+        # compute next integer
+        v = vals[-1] + 1 if vals else 1
+        
+        # keep adding integers
+        while s + v**n <= x:
+            answer += count_expressions(x, n, vals + [v]) # integer gets added to the array
+            v += 1
+
+        # branch has been completely explored
+        return answer
+
+print(count_expressions(29, 2, []))
+```
+
+The key step, and what was hardest for me to apprehend, was the separation between the creation of the next integer and the moment where it was added to the array. This allowed for the creation of an array, at different branches, which had, for example, 2 as its first element. 
+

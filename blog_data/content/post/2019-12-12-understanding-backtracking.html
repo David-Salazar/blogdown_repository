@@ -1,0 +1,80 @@
+---
+title: "Understanding Backtracking"
+author: "David Salazar"
+date: '2019-12-12'
+slug: understanding-backtracking
+tags: []
+categories: algorithms
+---
+
+
+
+<div id="recursion-black-magic" class="section level1">
+<h1>Recursion black magic</h1>
+<p>While working through some HackerRank’s problems, I came across the following exercise:</p>
+<blockquote>
+<p>Find the number of ways that a given integer, <span class="math inline">\(X\)</span>, can be expressed as the sum of the <span class="math inline">\(N^{th}\)</span> powers of unique, natural numbers.</p>
+</blockquote>
+<p>However, I could not inmediately come up with a compelling way to programatically enumerate and examine all the possible sequences of numbers to find the required solution. Thus, it’s good time as ever to refresh my knowledge about recursion and specically, backtracking.</p>
+<div id="backtracking" class="section level2">
+<h2>Backtracking</h2>
+<p>To solve the problem, one must generate and check every possible combination of integers that may generate the desired integer, <span class="math inline">\(X\)</span>.
+For example, for <span class="math inline">\(X = 29, N = 2\)</span>.</p>
+<p>One must start with <span class="math inline">\(1^2 = 1\)</span>. Then, check all the possible integers one can add. This includes adding <span class="math inline">\(2^2, 3^2\)</span>, both at the same time and separately. Check whehter any of these possibilites computes the desired number. Each possible avenue of exploration, then, will only stop when either the the sum actually generates the desired <span class="math inline">\(X\)</span>, or the sum is exceded. Once this part of the tree has been explored, we can</p>
+<p>Thus, we have an old-fashion recursion algorithm as follows:</p>
+<blockquote>
+<p>Populate an array starting from <span class="math inline">\(1\)</span>, and add to the array the following integer elevated to the required value and checking whether the stopping conditions are met. Once all of the possibilites have been evaluated, start from a new root and let <span class="math inline">\(2\)</span> be the first value in the array.</p>
+</blockquote>
+<pre class="python"><code>def count_expressions(x, n, vals):
+
+    # check the sum of the array
+    
+    s = sum(v**n for v in vals)
+
+    print(&#39;The current expression looks like:&#39;, &#39; + &#39;.join(&#39;{}^{}&#39;.format(v, n) for v in vals))
+    
+    # First stopping condition
+
+    if s == x:
+        print(&quot;We&#39;ve found a solution!&quot;)
+        
+        # answer that gets recursively savced up
+        return 1
+    else:
+        answer = 0
+        # compute next integer
+        v = vals[-1] + 1 if vals else 1
+        
+        # keep adding integers
+        while s + v**n &lt;= x:
+            answer += count_expressions(x, n, vals + [v]) # integer gets added to the array
+            v += 1
+
+        # branch has been completely explored
+        return answer
+
+print(count_expressions(29, 2, []))</code></pre>
+<pre><code>## The current expression looks like: 
+## The current expression looks like: 1^2
+## The current expression looks like: 1^2 + 2^2
+## The current expression looks like: 1^2 + 2^2 + 3^2
+## The current expression looks like: 1^2 + 2^2 + 4^2
+## The current expression looks like: 1^2 + 3^2
+## The current expression looks like: 1^2 + 3^2 + 4^2
+## The current expression looks like: 1^2 + 4^2
+## The current expression looks like: 1^2 + 5^2
+## The current expression looks like: 2^2
+## The current expression looks like: 2^2 + 3^2
+## The current expression looks like: 2^2 + 3^2 + 4^2
+## We&#39;ve found a solution!
+## The current expression looks like: 2^2 + 4^2
+## The current expression looks like: 2^2 + 5^2
+## We&#39;ve found a solution!
+## The current expression looks like: 3^2
+## The current expression looks like: 3^2 + 4^2
+## The current expression looks like: 4^2
+## The current expression looks like: 5^2
+## 2</code></pre>
+<p>The key step, and what was hardest for me to apprehend, was the separation between the creation of the next integer and the moment where it was added to the array. This allowed for the creation of an array, at different branches, which had, for example, 2 as its first element.</p>
+</div>
+</div>
