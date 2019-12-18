@@ -1,0 +1,65 @@
+---
+title: 'Neural Networks and Deep Learning '
+author: David Salazar
+date: '2019-12-18'
+slug: neural-networks-and-deep-learning
+output: 
+  blogdown::html_page:
+    toc: true
+categories:
+  - mooc
+tags: []
+---
+
+# Week 1 
+
+## Why Neural Networks?
+
+A single neuron can be thought as any function: it takes an input and outputs the input transformed. The magic of neural networks resides on stacking many of these together. 
+
+> So if this is a single neuron, neural network, really a tiny little neural network, a larger neural network is then formed by taking many of the single neurons and stacking them together. So, if you think of this neuron that's being like a single Lego brick, you then get a bigger neural network by stacking together many of these Lego bricks.
+
+By stacking them up, we can create hidden neural networks. These will eventually compute the optimal input transformation to finally output the last value.
+
+> How you manage neural network is that when you implement it, you need to give it just the input x and the output y for a number of examples in your training set and all this things in the middle, they will figure out by itself.
+
+> So for example, rather than saying these first nodes represent family size and family size depends only on the features X1 and X2. Instead, we're going to say, well neural network, you decide whatever you want this known to be. And we'll give you all four of the features to complete whatever you want.
+
+## Economic value from Neural Networks
+
+Most of the economic value has come from supervised learning using neural networks. That is:
+
+> So a lot of the value creation through neural networks has been through cleverly selecting what should be x and what should be y
+
+And then letting the network figure out the latent structure of the data to predict $y$.
+
+### Structured vs Unstructured
+
+> Structured Data means basically databases of data.
+
+> In contrast, unstructured data refers to things like audio, raw audio, or images where you might want to recognize what's in the image or text. Here the features might be the pixel values in an image or the individual words in a piece of text.
+
+Up until a few years ago, unstructured data was not accessible to computers:
+
+> And so one of the most exciting things about the rise of neural networks is that, thanks to deep learning, thanks to neural networks, computers are now much better at interpreting unstructured data as well compared to just a few years ago. And this creates opportunities for many new exciting applications that use speech recognition, image recognition, natural language processing on text...
+
+If they are so useful, but we have known about them for so long, why only now have they started to flourish?
+
+## Why now? Scale, scale and scale
+
+Let's imagine two different regimes. In one regime, equality is king and ingenuity rules: when we have few labeled data. Then, hand-engineered features can make any machine learning algorithm the best at hand.
+
+> In this regime of smaller training sets the relative ordering of the algorithms is actually not very well defined so if you don't have a lot of training data is often up to your skill at hand engineering features that determines the foreman so it's quite possible that if someone training an SVM is more motivated to hand engineer features and someone training even large their own that may be in this small training set regime the SVM could do better so you know in this region to the left of the figure the relative ordering between gene algorithms is not that well defined and performance depends much more on your skill at engine features and other mobile details of the algorithms. 
+
+Whereas in the second regime, when we have lots and lots of labeled data, large neural networks dominate every other machine learning algorithm out there. 
+
+With the Digital Society that we have now and the new computation resources we can have access to, we have entered the second regime:
+
+> Well you know was it they didn't know what to do with huge amounts of data and what happened in our society over the last 10 years maybe is that for a lot of problems we went from having a relatively small amount of data to having you know often a fairly large amount of data and all of this was thanks to the digitization of a society
+
+>  we also just have been collecting one more and more data so over the last 20 years for a lot of applications we just accumulate a lot more data more than traditional learning algorithms were able to effectively take advantage of
+
+Thus, the answer to the former question: Neural networks have taken a leading role in the stage as soon as we entered into the regime of scale, both in computing power and in the size of labeled data availabe to us. 
+
+
+
