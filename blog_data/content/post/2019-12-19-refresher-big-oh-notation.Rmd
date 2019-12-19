@@ -1,0 +1,18 @@
+---
+title: 'Refresher Big Oh Notation '
+author: David Salazar
+date: '2019-12-19'
+slug: refresher-big-oh-notation
+categories:
+  - algorithms
+tags: []
+---
+
+# Big Oh Notation
+
+First, let's try to remember what problem we are actually trying to solve: compare the different runtime of different algorithms. We are not comparing them across time, but across number of some basic operations. And we care not about the time itself, but about the runtime growth as the input size also growths. Thus, we use asymptotic analysis.
+
+$O(n)$ can thus be described as: the runtime grows linearly as the input size increases. 
+
+$O(n^2)$ can be described as: the runtime grows quadraticaly as the input size increases.
+
