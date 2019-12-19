@@ -61,5 +61,96 @@ With the Digital Society that we have now and the new computation resources we c
 
 Thus, the answer to the former question: Neural networks have taken a leading role in the stage as soon as we entered into the regime of scale, both in computing power and in the size of labeled data availabe to us. 
 
+# Week 2
+
+Objectives: 
+
+- **Learn vectorization in Python: avoiding explicit for-loops**
+
+- **Learn what a forward and backward pass mean in the context of logistic regression implemented as a one neural network.**
+
+## Notation
+
+![Notation](/images/notation.PNG)
+
+Notice the importance of the following variables:
+
+$m$, the number of training examples. $n_X$, the number of input variables. Also, notice that in this course we will stack as columns each observation, both in $X$ and $Y$.
+
+## Logistic Regression
+
+We want a function of parameters $w, b$ such that it is going to output something we can call $P(Y = 1| x)$. $ Xw + b$, which we would use in linear regression, seems wrong. Enter the sigmoid function defined thus:
+
+$$ \sigma (z) = \frac{1}{1 + e ^{-z}}  $$
+
+Notice that:
+
+- as $z \to \infty$, $\sigma (z) \approx 1$ .
+
+- as $z \to -\infty$, $\sigma (z) \approx 0$ .
+
+## A rational loss function
+
+We must tell our algorithm when it commits mistakes and when it is not. To do so, we create a loss function. For logistic regression, we are going to use the following: 
+
+
+![cost_and_loss](/images/cost_logistic.PNG)
+
+Note that, *the cost function is different to the loss function*.
+
+Although Andrew gave a great intuitive explanation, mainly that the loss function will tell the algorithm (in order to minimize the loss function) to make $\hat{y}$ large when $y=1$ and small when $y=0$, I think it is worth the trouble to go over the derivation of this cost function from a maximum likelihood perspective. 
+
+### Arriving at cost function: Maximum Likelihood
+
+Positing that the data comes from a bernoulli:
+
+Thus, the PMF is as follows:
+
+$$ p(y) =  (p)^y (1 - p)^{(1 - y)} $$
+
+If the data comes from an $i.i.d$, the joint probability is simply a multiplication of the respective PMFs of the $x^{i}$. The log of that expression, then, will be the following sum:
+
+$$ \sum_M log((p)^y (1 - p)^{(1 - y)) $$
+Applying simple logarithm rules:
+
+$$ \sum_M y log(p) + (1 - y) log (1 - p)  $$
+
+Then, as we switch the function to treat $y, x$ as given, and $w, b$ as parameters, we arrive at:
+
+$$ \sum_M y log(p(w, b; x)) + (1 - y) log (1 - p(w, b; x)) $$
+
+Then, in the maximum likelihood paradigm, we would maximize this quantity. However, we can just put a negative sign in front of it and minimize it. We would then, model $p$ with a logistic function depending on the parameters $w, b$. And voila! we arrive at the aforementioned cost function.  
+
+## Gradient Descent 
+
+Let's take the cost function? What do we do now?
+
+> And what we want to do is really to find the value of w and b that corresponds to the minimum of the cost function $J$.
+
+How do we find these special values $(w^*, b^*)$? 
+
+> So to find a good value for the parameters, what we'll do is initialize $w$ and $b$ to some initial value, maybe denoted by that little red dot. And for logistic regression almost any initialization method works, usually you initialize the value to zero. Random initialization also works, but people don't usually do that for logistic regression. But because this function is convex, no matter where you initialize, you should get to the same point or roughly the same point. And what gradient descent does is it starts at that initial point and then **takes a step in the steepest downhill direction**. So after one step of gradient descent you might end up there, because it's trying to take a step downhill in the direction of steepest descent or as quickly downhill as possible. 
+
+Andrew shows that, after initializing at a random value, taking a step into the direction of the gradient is equivalent to taking a step in the "steepest downhill direction". Why is that? 
+
+### Minimizing directional derivative
+
+Let's take an analysis into what happens when we move the function in the direction $\vec{v}$ just a little bit ($\vec{v}$ being an unit vector, or just a direction within a unit ball around the starting point):
+
+$$ D_{\hat{\vec{v}}} h = \lim_{t \to 0} \frac{h(\vec{x} + t \vec{v} ) - h(\vec{x})}{t} $$
+That is called, the directional derivative. And for a function in two variables, like our cost function, is the following:
+
+$$ D_{\hat{\vec{v}}} C(w, b; x_0) = C(w, b; x_0)_{w} v_w + C(w, b; x_0)_{b} v_b = \nabla C(w, b; x_0) \vec{v} $$
+
+Thus, if we want to maximize this growth, we must choose $\vec{v}$ such that it maximizes: $ \nabla C(w, b; x_0) \vec{v}$. We must remember the equivalent formulation of the dot product:
+
+$$  \nabla C(w, b; x_0) \vec{v} = || \nabla C(w, b; x_0) || \cdot || \vec{v} || \cos \theta $$
+However, $\vec{v}$ is a unit vector. Thus: 
+
+$$ \nabla C(w, b; x_0) \vec{v} =  || \nabla C(w, b; x_0) || \cos \theta$$
+Thus, we must choose $\theta$ such that the expression is maximized. Cosine has a maximum of $1$ at $\theta = 0$, which thus says that the two vectors, the gradient and the direction, must be aligned. That is, **the direction must be equal to the gradient evaluated at the initial point**. 
+
+Equivalently, to minimize the expresion, we must have cosine equal to $-1$, which happens at $\theta = \pi$. Which thus says that **the direction we must take is parallel to the negative (opposite) of the gradient vector evaluated at the initial point**. 
+
 
 
