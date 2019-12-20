@@ -53,6 +53,10 @@ Let's imagine two different regimes. In one regime, equality is king and ingenui
 
 Whereas in the second regime, when we have lots and lots of labeled data, large neural networks dominate every other machine learning algorithm out there. 
 
+### Universal Approximators
+
+The real reason why neural network seem to dominate every other machine learning algorithm out there when we are in the scale regime, is their capacity: they can fit almost any function out there. That is, they are universal approximators. Thus, if we have enough data, no matter how crazy the function must look like to approximate our data, the neural networks can find a way to get us towards that crazy function. I found a [visual proof](http://neuralnetworksanddeeplearning.com/chap4.html) of the theorem very illuminating. 
+
 With the Digital Society that we have now and the new computation resources we can have access to, we have entered the second regime:
 
 > Well you know was it they didn't know what to do with huge amounts of data and what happened in our society over the last 10 years maybe is that for a lot of problems we went from having a relatively small amount of data to having you know often a fairly large amount of data and all of this was thanks to the digitization of a society
@@ -94,7 +98,7 @@ Notice that:
 We must tell our algorithm when it commits mistakes and when it is not. To do so, we create a loss function. For logistic regression, we are going to use the following: 
 
 
-![cost_and_loss](/images/cost_logistic.PNG)
+![](/images/cost_logistic.PNG)
 
 Note that, *the cost function is different to the loss function*.
 
@@ -110,7 +114,7 @@ $$ p(y) =  (p)^y (1 - p)^{(1 - y)} $$
 
 If the data comes from an $i.i.d$, the joint probability is simply a multiplication of the respective PMFs of the $x^{i}$. The log of that expression, then, will be the following sum:
 
-$$ \sum_M log((p)^y (1 - p)^{(1 - y)) $$
+$$ \sum_M log((p)^y (1 - p)^{(1 - y))} $$
 Applying simple logarithm rules:
 
 $$ \sum_M y log(p) + (1 - y) log (1 - p)  $$
@@ -152,5 +156,122 @@ Thus, we must choose $\theta$ such that the expression is maximized. Cosine has 
 
 Equivalently, to minimize the expresion, we must have cosine equal to $-1$, which happens at $\theta = \pi$. Which thus says that **the direction we must take is parallel to the negative (opposite) of the gradient vector evaluated at the initial point**. 
 
+## Computational Graphs and backprop
+
+A computational graph is a way to order and compute the required mathematical steps to arrive at a certain value. Specially, to compute multiple function compositions into sequential steps- For a given neural network implementation, and for one training example, we can conceive of it as a computational graph. Setting up in this way, allows us to optimize the final value more easily than if we were to analytically derive the gradient of the final value through the original function compositions. 
+
+> So, the computation graph comes in handy when there is some distinguished or some special output variable, such as J in this case, that you want to optimize
+
+In order words, a neural network can be conceived, as an abstract:
+
+$$ f(g(h(i(....)))$$
+Whereas the derivatives may get unwieldy by looking at the neural network this way, we may instead switch our perspective to that of a computational graph. There, the chain rule looks much easier to calculate for any given initialization. 
+
+Notice that if we may use backprop in this way, we must be able to combine the derivatives of the loss functions of each training example into the derivative of the overall cost function. 
+
+### Example with logistic regression
+
+So, thanks to conceiving our neural network, for some value of the parameters, and for one training example, as a computational graph, we can use backpropagation to find out the gradient of our loss function with respect to the parameters. We, then, can compute the gradient of the cost function by combining these individual gradients and, finally, move into these direction to take a gradient step. Which can be seen in Andrew's pseudocode:
+
+![](/images/1_deeplearning.ai/one_step_gradient.PNG)
+
+However, notice that in the pseudocode there are three for loops, two implicit and one explicit. 
+
+1. The code only performs one step of gradient descent. We must loop over many steps.
+1. For each step, we must loop over each training observation to calculate the cost gradient and take a step in that direction. 
+1. For each training observation, we must loop over the parameters to start acumulating the value of their respective partial derivatives.
+
+Let's see if the wonders of vectorisation can help us.
+
+## Vectorisation
+
+> Vectorization is basically the art of getting rid of explicit folders in your code. In the deep learning era safety in deep learning in practice,
+
+> Whenever possible avoid explicit for-loops.
+
+Before, we defined 3 possible for-loops that were present in our training. With vectorisation, we can get rid of two of them.
+
+- **For each step, we must loop over each training observation to calculate the cost gradient and take a step in that direction.**
+- **For each training observation, we must loop over the parameters to start acumulating the value of their respective partial derivatives.**
+
+![](/images/1_deeplearning.ai/vectorisation_1.PNG)
+
+Notice how we can do a forward pass for all of the observations by stacking the individual observations vectors into columns of a matrix.
+
+We can also perform the backprop algorithm, all at once:
+
+![](/images/1_deeplearning.ai/vectorisation_2.PNG)
+
+In code:
+
+```{r include = FALSE}
+library(reticulate)
+use_python("/home/davidsalazarv95/anaconda3/lib")
+```
 
 
+```{python eval=FALSE}
+import numpy as np
+
+Z = np.dot(w.T, X) + b
+
+A = sigmoid(Z)
+
+dZ = A - Y
+
+dw = 1/m * np.dot(X, dZ.T)
+
+db = 1/m * np.sum(dZ)
+
+```
+
+## Broadcasting
+
+> If you take a 4 by 1 vector and add it to a number, what Python will do is take this number and auto-expand it into a four by one vector as well, as follows.
+
+```{python}
+import numpy as np
+np.array([1, 2, 3, 4]) + 5
+```
+
+> If you have an (m,n) matrix and you add or subtract or multiply or divide with a (1,n) matrix, then this will copy it n times into an (m,n) matrix.
+
+```{python}
+matrix = np.array([[1, 2, 3, 4],[5, 6, 7, 8],[9, 10, 11, 12]])
+col_avg = np.mean(matrix, axis = 0)
+print(matrix)
+print(col_avg)
+matrix/col_avg
+```
+
+> If conversely, you were to take the (m,n) matrix and add, subtract, multiply, divide by an (m,1) matrix, then also this would copy it now n times. And turn that into an (m,n) matrix and then apply the operation element wise
+
+```{python}
+matrix = np.array([[1, 2, 3, 4],[5, 6, 7, 8],[9, 10, 11, 12]])
+row_avg = np.mean(matrix, axis = 1)
+row_avg = row_avg.reshape(3, 1)
+print(matrix)
+print(row_avg)
+matrix/row_avg
+```
+
+
+## Assingments' need to remember:
+
+**What you need to remember:**
+
+Common steps for pre-processing a new dataset are:
+- Figure out the dimensions and shapes of the problem (m_train, m_test, num_px, ...)
+- Reshape the datasets such that each example is now a vector of size (num_px \* num_px \* 3, 1)
+- "Standardize" the data
+
+You've implemented several functions that:
+- Initialize (w,b)
+- Optimize the loss iteratively to learn parameters (w,b):
+    - computing the cost and its gradient 
+    - updating the parameters using gradient descent
+- Use the learned (w,b) to predict the labels for a given set of examples
+
+1. Preprocessing the dataset is important.
+2. You implemented each function separately: initialize(), propagate(), optimize(). Then you built a model().
+3. Tuning the learning rate (which is an example of a "hyperparameter") can make a big difference to the algorithm. You will see more examples of this later in this course!
