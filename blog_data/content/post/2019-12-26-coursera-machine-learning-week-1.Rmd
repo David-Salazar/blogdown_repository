@@ -1,8 +1,11 @@
 ---
-title: 'Coursera Machine Learning: Week 1'
+title: 'Coursera Machine Learning: Introduction and Linear Regression'
 author: ''
 date: '2019-12-26'
 slug: coursera-machine-learning-week-1
+output: 
+  blogdown::html_page:
+    toc: true
 categories:
   - mooc
 tags:
@@ -82,4 +85,178 @@ The most common problem in unsupervised leraning is clustering: find the latent 
 
 > With unsupervised learning there is no feedback based on the prediction results.
 
+we address unsupervised learning or “learning without a
+teacher.” In this case one has a set of $N$ observations $(x_1,x_2,... ,x_N )$ of a
+random p-vector $X$ having joint density $Pr(X)$. The goal is to directly infer
+the properties of this probability density without the help of a supervisor or
+teacher providing correct answers or degree-of-error for each observation.
+
+For example, Cluster analysis attempts to find multiple convex regions of the $X-space$ that contain
+modes of $Pr(X)$. 
+
+It is difficult to ascertain the validity of inferences
+drawn from the output of most unsupervised learning algorithms. One must
+resort to heuristic arguments not only for motivating the algorithms, as is
+often the case in supervised learning as well, but also for judgments as to
+the quality of the results. 
+
+## Linear Regression
+
+> We saw that with the training set like our training set of housing prices and we feed that to our learning algorithm. Is the job of a learning algorithm to then output a function which by convention is usually denoted lowercase h and h stands for hypothesis And what the job of the hypothesis is, is, is a function that takes as input the size of a house like maybe the size of the new house your friend's trying to sell so it takes in the value of x and it tries to output the estimated value of y for the corresponding house. 
+
+Thus, our ML algorithm will output a function that will try to predict the target variable, $y$, given some information about the observations; information that will be encoded in a matrix X. That is: $ML:\{(X_n, Y_n)\} \subset X \times Y \to h(X)$ . However, $h(X)$ could take many forms. Each ML algorithm will posit different assumptions about the hypothesis space where we will search for the best $h^*(x)$.
+
+In our linear regression model, we will posit that $Y$ can be modeled as a linear combination of the inputs: $h(x, \beta) = x \cdot \beta$. But first, let's review how we will compare among all the possible linear combination which will be the better for our purposes. 
+
+### Loss Function
+
+Our prediction for a given $x$ will be evaluated according to how far it is from the observed value. Thus, we could use the following loss function. 
+
+$$ \ell (x, y, \beta) = (h(x, \beta) - y)^2$$
+
+Notice the importance of the squared: it ensures that both overshooting and undershooting will be considered mistakes. Thus, our cost function will be the expected loss over the learning space:
+
+$$ E_{(X, Y)} (\ell (x, y, \beta)) $$
+
+However, not observing the joint probability of $(X, Y)$, we will treat our training cost function as:
+
+$$ \sum_i^N  \ell (x_i, y_i, \beta) = (x_i \cdot \beta - y_i)^2$$
+
+Thus, our problem will be equivalent to find the best parameters $\beta$ such that they minimize our training set cost function. But how can we find such $\beta$? The answer? Gradient Descent!
+
+## Gradient Descent 
+
+> So we have our hypothesis function and we have a way of measuring how well it fits into the data. Now we need to estimate the parameters in the hypothesis function. That's where gradient descent comes in.
+
+> The slope of the tangent is the derivative at that point and it will give us a direction to move towards. We make steps down the cost function in the direction with the steepest descent. The size of each step is determined by the parameter α, which is called the learning rate.
+
+That is, we will start at some possible vector $\beta$, and we will move this vector into the direction of the steepest descent of the training cost function. Which direction is this? The negative gradient? WHy
+
+### Gradient Descent Justification
+
+
+Let's take an analysis into what happens when we move the function $h(x)$ in the direction $\vec{v}$ just a little bit ($\vec{v}$ being an unit vector, or just a direction within a unit ball around the starting point):
+
+> In gradient descent, what we're going to do is we're going to spin 360 degrees around, just look all around us, and ask, if I were to take a little baby step in some direction, and I want to go downhill as quickly as possible, what direction do I take that little baby step in? If I wanna go down, so I wanna physically walk down this hill as rapidly as possible.
+
+$$ D_{\hat{\vec{v}}} h = \lim_{t \to 0} \frac{h(\vec{x} + t \vec{v} ) - h(\vec{x})}{t} $$
+That is called, the directional derivative. And for a function in two variables, like our cost function, is the following:
+
+$$ D_{\hat{\vec{v}}} C(w, b; x_0) = C(w, b; x_0)_{w} v_w + C(w, b; x_0)_{b} v_b = \nabla C(w, b; x_0) \vec{v} $$
+
+Thus, if we want to maximize this growth, we must choose $\vec{v}$ such that it maximizes: $ \nabla C(w, b; x_0) \vec{v} $. We must remember the equivalent formulation of the dot product:
+
+$$  \nabla C(w, b; x_0) \vec{v} = || \nabla C(w, b; x_0) || \cdot || \vec{v} || \cos \theta $$
+However, $\vec{v}$ is a unit vector. Thus: 
+
+$$ \nabla C(w, b; x_0) \vec{v} =  || \nabla C(w, b; x_0) || \cos \theta$$
+
+
+Thus, we must choose $\theta$ such that the expression is maximized. Cosine has a maximum of $1$ at $\theta = 0$, which thus says that the two vectors, the gradient and the direction, must be aligned. That is, **the direction must be equal to the gradient evaluated at the initial point**. 
+
+Equivalently, to minimize the expresion, we must have cosine equal to $-1$, which happens at $\theta = \pi$. Which thus says that **the direction we must take is parallel to the negative (opposite) of the gradient vector evaluated at the initial point**. 
+
+#### Learning rate
+
+- Too small: the algorithm may take many steps and take a long time to converge. 
+
+- Too large: the algorithm may not converge, and take many many steps, or even diverge.
+
+- As it reaches a global minimum, it will take smaller steps: even for a constant learning rate. The gradient will slowly get to zero as it reaches the minimum, and thus the gradient times the learning rate will go smaller with each step. 
+
+## Gradient Descent in Linear Regression
+
+Gradient Descent will find at least a local minimum if this exists. However, in the case of linear regression, for our cost function, we will find a global minimum:
+
+> So, this is simply gradient descent on the original cost function J. This method looks at every example in the entire training set on every step, and is called batch gradient descent. Note that, while gradient descent can be susceptible to local minima in general, the optimization problem we have posed here for linear regression has only one global, and no other local, optima; thus gradient descent always converges (assuming the learning rate $\alpha$ is not too large) to the global minimum. Indeed, J is a convex quadratic function.
+
+
+```{r include = FALSE}
+library(reticulate)
+use_python("/home/davidsalazarv95/anaconda3/lib")
+```
+
+## Implementing Linear Regression with Gradient Descent
+
+Putting everything together, we have some training data $(X, Y)$. We will use the loss function of the squared errors; which has its training equivalent as:
+
+$$ \sum_i^N  \ell (x_i, y_i, \beta) = (x_i \cdot \beta - y_i)^2 $$
+We will choose our parameters such that they minimize this loss function. To do so, we will use gradient descent. However, before we calculate the gradient for gradient descent, let's put everything into matrix form:
+
+The error:
+
+$$ Y - X\beta $$
+
+The training loss function:
+
+$$ (Y - X\beta)' (Y - X \beta) $$
+And thus, the gradient is:
+
+$$ 2 X'X \beta - 2X'Y = X'(X \beta - Y) $$
+
+
+```{python}
+from sklearn.datasets import make_regression
+import numpy as np
+# Create Simulated Data
+# Generate fetures, outputs, and true coefficient of 100 samples,
+X, Y, coef = make_regression(n_samples = 100, n_features = 8,
+                                n_informative = 3, n_targets = 1,
+                                noise = 0.0, coef = True)
+                                
+print(X.mean(axis = 0), Y.mean())
+print(X.std(axis = 0), Y.mean())
+print(coef)
+```
+
+The features seem to already be scaled; thus, gradient descent will advance uniformily across all the dimensions. 
+
+```{python}
+
+def compute_cost(X, beta, Y):
+
+  m = X.shape[0]
+
+  return np.sum(np.square(np.dot(X, beta) - Y))/m
+  
+def compute_gradient(X, beta, Y):
+
+  return np.dot(X.T, (np.dot(X, beta) -  Y))
+  
+def update_parameters(beta, gradient, alpha):
+
+  return beta - alpha * gradient
+  
+  
+def model_linear_regression(X, coef, Y, alpha = 0.01, num_iterations = 100):
+
+  beta = np.squeeze(np.zeros_like(coef))
+
+  cost_across_iterations = []
+  
+  for i in range(0, num_iterations):
+  
+    gradient = compute_gradient(X, beta, Y)
+    beta = update_parameters(beta, gradient, alpha)
+    cost = compute_cost(X, beta, Y)
+    
+    cost_across_iterations.append(cost)
+    if i  % 10 == 0:
+        print (f"Cost after iteration {i}: {cost}")
+    
+  if np.allclose(beta, coef): 
+    print( "\n Regression did capture true coefficients!!")
+  
+model_linear_regression(X, coef, Y)
+```
+
+One of the benefits of working with simulated data: we can compare our estimated coefficients with the true ones! And indeed, our model did capture all of them correctly. Also, the training cost function did decrease across gradient descent steps. 
+
+Let's try what would happen if we used a learning step, alpha, that was too big for the problem at hand:
+
+```{python}
+model_linear_regression(X, coef, Y, alpha = 0.1)
+```
+
+We can see that the model diverges and does not capture the true coefficients in the simulated data. Moral of the study: be careful when choosing a learning rate!
 
