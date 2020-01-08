@@ -260,3 +260,22 @@ model_linear_regression(X, coef, Y, alpha = 0.1)
 
 We can see that the model diverges and does not capture the true coefficients in the simulated data. Moral of the study: be careful when choosing a learning rate!
 
+## Problems with linear regression
+
+### Sensibility to Outliers
+
+Outliers are another confounding factor when using linear regression. These are elements of a data set that are far removed from the rest of the data.
+
+Outliers are problematic because they are often far enough from the rest of the data that the best-fit line will be strongly skewed by them, even when they are present because of a mistake in recording or an unlikely fluke.
+
+### Multicollinearity
+
+Another major setback to linear regression is that there may be multicollinearity between predictor variables. This is the term for when several of the input variables appear to be strongly related.  the major concern is that multicollinearity allows many different best-fit equations to appear almost equivalent to a regression algorithm. That is, there won't exist a unique solution. Mathematically, the constraint is that $(X'X)$ be **nonsingular**, which is equivalent to ask that the rank of $X$ equals the # of columns. 
+
+### Heteroscedasticity
+
+The property of heteroscedasticity has also been known to create issues in linear regression problems. Heteroscedastic data sets have widely different standard deviations in different areas of the data set, which can cause problems when some points end up with a disproportionate amount of weight in regression calculations.
+
+
+
+
