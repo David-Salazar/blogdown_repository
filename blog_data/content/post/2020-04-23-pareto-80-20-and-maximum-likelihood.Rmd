@@ -1,0 +1,8 @@
+---
+title: Pareto 80/20 and Maximum Likelihood
+author: ''
+date: '2020-04-23'
+slug: pareto-80-20-and-maximum-likelihood
+categories: []
+tags: []
+---
