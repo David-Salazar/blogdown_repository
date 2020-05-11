@@ -76,7 +76,6 @@ data.frame(n = seq(1, length.out = number_samples),
   labs(title = " Fattening a distribution",
        subtitle = "Tails and peak gain. Intermediate values lose.") +
   theme(legend.position = "bottom")
-
 ```
 
 Therefore, as we stochastize the variance of the distribution, 3 interesting facts arise:
@@ -131,7 +130,7 @@ different_as %>%
   theme(legend.position = "none") +
   labs(title = "Fattening a distribution",
        subtitle = "Higher a, higher stochastic volatility. Non linear fattening response.",
-       caption = "Standard normal in black line.") 
+       caption = "Standard normal in black line.")
 ```
 
 And now with all curves in one plot:
