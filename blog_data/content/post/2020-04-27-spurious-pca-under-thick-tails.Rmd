@@ -57,7 +57,7 @@ Let's try to replicate this behavior in R. I'll create 30 i.i.d. gaussians. Firs
 gaussian_small <- rerun(30, rnorm(100)) %>% 
   bind_cols()
 
-gaussian_large <- rerun(30, rnorm(1000)) %>% 
+gaussian_large <- rerun(30, rnorm(10^6)) %>% 
   bind_cols()
 
 pca(gaussian_small) %>% 
@@ -102,7 +102,7 @@ Just as before, I'll create 30 random variables. With the difference being that 
 stable_small <- rerun(30, rstable(100, alpha = 3/2, beta = 1, gamma = 1, delta = 0)) %>% 
   bind_cols()
 
-stable_large <- rerun(30, rstable(1000, alpha = 3/2, beta = 1, gamma = 1, delta = 0)) %>% 
+stable_large <- rerun(30, rstable(10^6, alpha = 3/2, beta = 1, gamma = 1, delta = 0)) %>% 
   bind_cols() 
 
 pca(stable_small) %>% 
