@@ -67,7 +67,7 @@ Once we have an estimate for $\widehat \alpha$, our estimate for the mean will b
 
 To demonstrate the *superiority* of the **maximum likelihood and plug in estimator** approach to the sample mean of an empirical distribution, I'll simulate 10^5 Monte-Carlo experiments. For each experiment, I'll sample $n$ observations from a Pareto with $\alpha = 1.2$ and theoretical mean $\dfrac{1.2}{1.2 - 1} = 6$. Then, I'll produce the **maximum likelihood estimate for the tail exponent** and an estimate of the mean using our **plug-in** estimator. At the same time, I'll produce the regular sample mean for each experiment considering the *"empirical distribution"*. Finally, I'll compare the resulting distribution of both the sample mean and the mean from the plug-in estimator. 
 
-I'll repeat this for both $n = 100, 100$
+I'll repeat this for both $n = 100, 1000$
 
 ```{r}
 alpha <- 1.2
@@ -94,7 +94,7 @@ crossing(experiment = 1:10^5, sample_size = c(100, 1000)) %>%
 
 From relatively few observations, we can reliably estimate the tail exponent of the distribution. 
 
-This goes against the usual comment that with fat-tailed variables we *need more* and more observations; **the information about the properties of the distribution** is already there with *some* data. Let's check our Monte-Carlo distribution for our maximum likelihood alpha estimates for both values of $n = 100, 1000$
+This goes against the usual comment that with fat-tailed variables we *need more* and more observations; **the information about the properties of the distribution** is already there with *some* data. Let's check our Monte-Carlo distribution for our maximum likelihood alpha estimates for both values of $n = 100$ and $n= 1000$
 
 ```{r echo=FALSE, fig.width=10, fig.height=7}
 simulations_result %>% 
