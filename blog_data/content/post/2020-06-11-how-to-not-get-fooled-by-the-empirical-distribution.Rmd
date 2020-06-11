@@ -61,7 +61,7 @@ $$ \ell(\alpha) = n \ln \alpha  - (\alpha + 1) \sum_{i=1} ^n \ln x_i. $$
 $$ \widehat \alpha = \frac{n}{\sum _i  \ln (x_i) }$$
 Luckily, this maximum likelihood estimate for $\alpha$ works reasonably well with relatively small amounts of data. Why? Because $\widehat \alpha$ follows an Inverse gamma distribution with shape parameter equal to $n$ and scale parameter equal to $\alpha n$. Although biased, the distribution of the estimator rapidly converges to a normal distribution tightly *around* the true $\alpha$. Therefore, one can reliably estimate the tail exponent of the Pareto and thus understand the properties of the distribution with relatively few data.
 
-Once we have an estimate for $\widehat \alpha$, our estimate for the mean will be $ \dfrac{\widehat \alpha}{ \widehat \alpha - 1 }$. This is the **plug-in** estimator for the mean. 
+Once we have an estimate for $\widehat \alpha$, our estimate for the mean will be $\dfrac{\widehat \alpha}{ \widehat \alpha - 1 }$. This is the **plug-in** estimator for the mean. 
 
 ### Maximum likelihood in practice
 
