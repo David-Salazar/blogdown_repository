@@ -7,8 +7,7 @@ categories: []
 tags: []
 ---
 
-```{r setup}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```{r setup, include=FALSE}
 library(aaltobda)
 library(tidyverse)
 # Roboto-Condensed
@@ -109,12 +108,12 @@ get_posterior <- function(prior_alpha, prior_beta) {
 }
 set.seed(25)
 labels_alpha <- unlist(map(seq(2, 50, length.out = 4), ~ glue::glue("alpha = {.}")))
-labels_beta <- unlist(map(seq(10, 250, length.out = 4), ~ glue::glue("beta = {.}")))
-labels_prior_observations <- unlist(map(seq(2, 50, length.out = 4) + seq(10, 250, length.out = 4) - 2,
+labels_beta <- unlist(map(seq(8, 200, length.out = 4), ~ glue::glue("beta = {.}")))
+labels_prior_observations <- unlist(map(seq(2, 50, length.out = 4) + seq(8, 200, length.out = 4) - 2,
                                     ~ glue::glue("prior obs = {.}")))
 
 tibble(alpha = seq(2, 50, length.out = 4),
-         beta = seq(10, 250, length.out = 4)) %>% 
+         beta = seq(8, 250, length.out = 4)) %>% 
   mutate(samples_posterior = map2(alpha, beta, ~ get_posterior(.x, .y))) %>% 
   unnest(samples_posterior) %>% 
   mutate(prior_observations = alpha + beta - 2,
@@ -129,10 +128,11 @@ tibble(alpha = seq(2, 50, length.out = 4),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank()) +
   labs(title = "Prior Sensitivity Analysis",
-       subtitle = "Original posterior mean shown in red. Subsequent priors are increasingly concentrated around 0.16")
+       subtitle = "Original posterior mean shown in red. Subsequent priors are increasingly concentrated around 0.2,
+      yet the posterior hardly moves to 0.2")
 
 ```
 
-The posterior is very robust. Even after drastically increasing the number of prior observations, the posterior distribution hardly changes. 
+The posterior is very robust. Even after drastically increasing the number of prior observations, the prior's mean (0.2) is still a very unlikely event in the eyes of the posterior. 
 
 
