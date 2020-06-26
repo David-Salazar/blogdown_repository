@@ -32,7 +32,7 @@ G^{N P}\left(X_{n}\right)=\frac{\sum_{1 \leq i&lt;j \leq n}\left|X_{i}-X_{j}\rig
 <p>We will examine the behavior of this estimator both under thin-tailed distributions and under fat-tailed distributions.</p>
 <div id="finite-variance-asymptotic-normality-for-the-non-parametric-estimator" class="section level3">
 <h3>Finite variance, asymptotic normality for the non parametric estimator</h3>
-<p>Under the hypothesis of finite variance for the data-generating process of <span class="math inline">\(X\)</span>, the estimator is asymptotically normal. We can check this condition with Monte-Carlo simulations. I’ll perform <span class="math inline">\(10^4\)</span> Monte-Carlo experiments: in each of them, I’ll generate a 100 samples from a lognormal with underlying standard deviation of 0.2, which behaves like a Gaussian. Then, I’ll calculate the Gini estimate using the non-parametric estimator.</p>
+<p>Under the hypothesis of finite variance for the data-generating process of <span class="math inline">\(X\)</span>, the estimator is asymptotically normal. We can check this condition with Monte-Carlo simulations. I’ll perform <span class="math inline">\(10^4\)</span> Monte-Carlo experiments: in each of them, I’ll generate a 1000 samples from a lognormal with underlying standard deviation of 0.2, which behaves like a Gaussian. Then, I’ll calculate the Gini estimate using the non-parametric estimator.</p>
 <p>Given this lognormal, the “true” Gini is thus:</p>
 <p><span class="math display">\[
 G=2 \Phi\left(\frac{\sigma}{\sqrt{2}}\right)-1 = 0.11246
@@ -54,7 +54,7 @@ gini_lognormal %&gt;%
 <div id="fat-tails-non-parametric-estimator" class="section level3">
 <h3>Fat-tails: Non-parametric estimator</h3>
 <p>However, when the data-generating process of <span class="math inline">\(X\)</span> is in <a href="https://david-salazar.github.io/2020/06/10/fisher-tippet-th-a-clt-for-the-sample-maxima/">the MDA of the Fréchet</a> (i.e., it’s a fat-tailed variable), the non-parametric estimator of the Gini Index loses its properties of normality. Indeed, the limiting distribution of the non-parametric index becomes a skewed-to-the-right <span class="math inline">\(\alpha\)</span>-stable law. Thus, the non-parametric estimate underestimates the true Gini Index.</p>
-<p>This can be checked with Monte-Carlo simulations. I’ll perform <span class="math inline">\(10^4\)</span> Monte-Carlo experiments: in each of them, I’ll generate a 100 samples from a Pareto with <span class="math inline">\(\alpha = 1.16\)</span>. Then, I’ll calculate the Gini estimate using the non-parametric estimator.</p>
+<p>This can be checked with Monte-Carlo simulations. I’ll perform <span class="math inline">\(10^4\)</span> Monte-Carlo experiments: in each of them, I’ll generate a 1000 samples from a Pareto with <span class="math inline">\(\alpha = 1.16\)</span>. Then, I’ll calculate the Gini estimate using the non-parametric estimator.</p>
 <p>Given this Pareto, the “true” Gini is thus:</p>
 <p><span class="math display">\[
 g = \dfrac{1}{2\alpha -1} = 0.7575758
