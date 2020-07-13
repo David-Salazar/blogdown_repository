@@ -124,7 +124,11 @@ In two dimensions, we can visualize a typical set as a thin donut: at any point 
 
 Chi Feng [has awesome interactive visualizations](https://chi-feng.github.io/mcmc-demo/) that represent exactly this conundrum:
 
+<<<<<<< HEAD
 ![](/images/metropolis.gif)
+=======
+![](/images/metropolis.GIF)
+>>>>>>> abe09e3cd313dfc12630c3063c969959af729a6a
 
 # Hamiltonian Monte-Carlo
 
@@ -138,7 +142,11 @@ We've identified that an intelligent proposal distribution will encode the geome
 
 > Continuing this process traces out a coherent trajectory through the typical set that efficiently moves us far away from the initial point to new, unexplored regions of the typical set as quickly as possible. 
 
+<<<<<<< HEAD
 The question, then, is how to create these vector field? A first approximation is to exploit the differential structure of the posterior through the gradient. However, following the gradient pulls us away from the typical set and into the mode of the posterior. Here comes Physics to the rescue. This is an equivalent problem to the problem of placing a satellite in a stable orbit around a hypothetical planet. 
+=======
+The question, then, is how to create these vector field? A first approximation is to exploit the differential structure of the posterior thoruhg the gradient. However, following the gradient pulls us away from the typical set and into the mode of the posterior. Here comes Physics to the rescue. This is an equivalent problem to the problem of placing a satellite in a stable orbit around a hypothetical planet. 
+>>>>>>> abe09e3cd313dfc12630c3063c969959af729a6a
 
 The key to do it is to endow our walk through the typical set by with enough momentum ($p$) to counteract the gravitation attraction of the mode. Therefore:
 
@@ -152,6 +160,7 @@ $$
 \pi(q, p)=\pi(p \mid q) \pi(q)
 $$
 
+<<<<<<< HEAD
 Which allows us to ignore the momenta when necessary by marginalizing it. The joint density $\pi(q, p)$ defines a Hamiltonian
 
 $$
@@ -161,6 +170,9 @@ $$
 Thus, given some point in the phase space $(q_0, p_0)$ that is in the typical set, the Hamiltonian defines how to generate a new sample such that we stay in the typical set. 
 
 Therefore:
+=======
+Which allows us to ignore the momenta when necessary by marginalizing it. The joint density $\pi(q, p)$ is constructed following Hamiltonian dynamics. Therefore:
+>>>>>>> abe09e3cd313dfc12630c3063c969959af729a6a
 
 > Following the Hamiltonian vector field for some time, \( t \), generates trajectories, \( \phi_{t}(q, p), \) that rapidly move through phase $(q_n, p_n)$ space while being constrained to the typical set. Projecting these trajectories back down onto the target parameter space finally yields the efficient exploration of the target typical set for which we are searching.
 
@@ -176,12 +188,17 @@ $$
 
 We know are in the phase space $(q_0, p_0)$. 
 
+<<<<<<< HEAD
 2. If we follow the vector field by following Hamilton's equations that we have created \( \phi_{t}(q_0, p_0) = q^*, p^*, \) by integrating for some time $t$, we coherently push the Markov transition away from the initial point while staying confined to the joint typical set. This movement through the field space is done via discrete $L$ *'leapfrog steps'* with discretization time $\epsilon$. Stan's implementation of HMC automatically chooses both of these values. 
+=======
+2. If we follow the vector field that we have created \( \phi_{t}(q_0, p_0) = q^*, p^*, \) by integrating for some time $t$, we coherently push the Markov transition away from the initial point while staying confined to the joint typical set. This movement through the field space is done via discrete $L$ *'leapfrog steps'*. Stan's implementation of HMC automatically chooses the leapfrog steps and their respective length. 
+>>>>>>> abe09e3cd313dfc12630c3063c969959af729a6a
 
 3. If we marginalize the momenta, we project it away and go back to the parameter space with a proposal $q^*$. 
 
 Because we have followed the vector field in phase space and projected the momenta away, if we started in the typical set, our proposal is guaranteed to be on the typical set, too. **Thus, allowing extremely efficient exploration of the typical set.**
 
+<<<<<<< HEAD
 Finally, we will accept or reject our proposed jump with a Metropolis ratio. 
 
 $$
@@ -193,6 +210,14 @@ Thus, with probability $r$, we set $\theta_1 = \theta^*$. Otherwise, $\theta_1 =
 We can visualize the incredible efficiency that Hamiltonian Monte Carlo can deliver. In the exact same example as with the donut we just saw with Metropolis, HMC samples much more efficiently. 
 
 ![](/images/hmc.gif)
+=======
+Finally, we will accept or reject our proposed jump with a Metropolis-Hastings ratio. 
+
+We can visualize the incredible efficiency that Hamiltonian Monte Carlo can deliver. In the exact same example as with the donut we just saw with Metropolis, HMC samples much more efficiently. 
+
+![](/images/hmc.GIF)
+
+>>>>>>> abe09e3cd313dfc12630c3063c969959af729a6a
 
 # Conclusion
 
