@@ -42,7 +42,7 @@ Because the do-calculus offers *no way of connecting the information across the 
 
 Before, we had seen that observational information [is not enough to distinguish between different causal diagrams](https://david-salazar.github.io/2020/07/22/causality-invariance-under-interventions/). We'll show that the same thing happens with counterfactuals: information from interventions is not enough to distinguish between different Structural Causal Diagrams. Indeed, prediction, intervention and counterfactuals represent a **natural hierarchy** of *reasoning tasks*, with increasing levels of refinement and increasing demands on the knowledge required to accomplish them. Pearl calls this hierarchy the **Ladder of Causation**:
 
-![](/images/ladder.PNG)
+![](/images/ladder.png)
 
 Whereas for prediction one only needs a joint distribution function, the analysis of intervention requires a causal structure; finally, **processing counterfactuals** requires information about the **functional relationships** that determine that determine the variables and/or the distribution of the **omitted factors**. We will encode all this necessary information with **Structural Causal Models (SCM)**.
 
