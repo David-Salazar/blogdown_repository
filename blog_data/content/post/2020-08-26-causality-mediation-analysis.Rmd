@@ -7,7 +7,7 @@ categories: []
 tags: []
 ---
 
-```{r echo=, message=FALSE, warning=FALSE}
+```{r echo=T, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggdag)
 extrafont::loadfonts(device="win")
