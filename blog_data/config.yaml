@@ -1,0 +1,47 @@
+baseurl: "https://david-salazar.github.io/"
+publishDir: "../../David-Salazar.github.io"
+languageCode: en-us
+title: David Salazar's blog
+theme: hugo-lithium
+googleAnalytics: ''
+disqusShortname: 'https-david-salazar-github-io'
+ignoreFiles:
+  - \.Rmd$
+  - \.Rmarkdown$
+  - _cache$
+  - \.knit\.md$
+  - \.utf8\.md$
+permalinks:
+  post: /:year/:month/:day/:slug/
+menu:
+  main:
+    - name: About
+      url: /about/
+    - name: Posts
+      url: https://david-salazar.github.io/
+    - name: GitHub
+      url: https://github.com/David-Salazar
+    - name: Twitter
+      url: https://twitter.com/DavidSalazarVir
+params:
+  MathJaxCDN: //cdnjs.cloudflare.com/ajax/libs
+  MathJaxVersion: 2.7.5
+  description: A website built through Hugo and blogdown.
+  favicon: favicon.ico
+  highlightjsCDN: //cdnjs.cloudflare.com/ajax/libs
+  highlightjsLang:
+    - r
+    - python
+    - yaml
+  highlightjsTheme: github
+  highlightjsVersion: 9.12.0
+  logo:
+    alt: Logo
+    height: 50
+    url: booglee.jpeg
+    width: 50
+markup:
+  defaultMarkdownHandler: goldmark
+  goldmark:
+    renderer:
+      unsafe: yes

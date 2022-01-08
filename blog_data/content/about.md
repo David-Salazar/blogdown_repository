@@ -1,6 +1,7 @@
 ---
-title: "About"
-date: "2018-06-07"
+date: "2022-01-01T21:48:51-07:00"
+title: About
 ---
 
-Hi! My name is David Salazar an I am dilettant'n my way into understanding Machine Learning and Data Science in general.
+I am David Salazar and I am a Machine Learning Engineer dilettantin' Data Science. 
+
